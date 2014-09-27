@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="70dp"
+    android:background="@drawable/trans_btn">
+
+    <TextView
+        android:id="@+id/recordName"
+        android:layout_width="0dp"
+        android:layout_weight="0.9"
+        android:text="Record 1"
+        android:gravity="center_vertical"
+        android:layout_margin="20dp"
+        android:layout_height="match_parent"/>
+
+    <ImageButton
+        android:id="@+id/deleteBtn"
+        android:layout_width="48dp"
+        android:layout_height="match_parent"
+        android:src="@drawable/ic_action_remove"
+        android:contentDescription="Remove Record"
+        android:background="?android:selectableItemBackground"/>
+
+</LinearLayout>
