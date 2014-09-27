@@ -98,7 +98,6 @@ public class Database extends SQLiteOpenHelper {
                     records_list.add(record);
                 } while (cursor.moveToNext());
             }
-            // return contact list
             cursor.close();
             db.close();
             return records_list;
