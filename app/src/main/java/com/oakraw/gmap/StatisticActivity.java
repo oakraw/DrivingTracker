@@ -70,8 +70,7 @@ public class StatisticActivity extends Activity {
             }
 
 
-            LatLng coordinates = new LatLng(13.685400079263206, 100.537133384495975);
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(coordinates, 16));
+
 
             //googleMap.addMarker(new MarkerOptions().position(fromPosition).title("Start"));
             //googleMap.addMarker(new MarkerOptions().position(toPosition).title("End"));
@@ -82,33 +81,47 @@ public class StatisticActivity extends Activity {
     private void decodeJson(){
         if(route != null){
             try {
-                JSONObject json = new JSONObject(route);
-                JSONObject detailJson = json.getJSONObject("detail");
+                LatLng sPos = new LatLng(13.685400079263206, 100.537133384495975);;
+                JSONArray jsonArray = new JSONArray(route);
+                for(int j=0; j<jsonArray.length();j++) {
+                    JSONObject json = jsonArray.getJSONObject(j);
+                    JSONObject detailJson = json.getJSONObject("detail");
 
-                double latitudeStart = detailJson.getDouble("startLat");
-                double longitudeStart = detailJson.getDouble("startLon");
-                fromPosition = new LatLng(latitudeStart,longitudeStart);
-                double latitudeEnd = detailJson.getDouble("endLat");
-                double longitudeEnd = detailJson.getDouble("endLon");
-                toPosition = new LatLng(latitudeEnd,longitudeEnd);
+                    double latitudeStart = detailJson.getDouble("startLat");
+                    double longitudeStart = detailJson.getDouble("startLon");
+                    fromPosition = new LatLng(latitudeStart, longitudeStart);
+                    if(j==0)
+                        sPos = fromPosition;
+                    double latitudeEnd = detailJson.getDouble("endLat");
+                    double longitudeEnd = detailJson.getDouble("endLon");
+                    toPosition = new LatLng(latitudeEnd, longitudeEnd);
 
-                JSONArray arrayRoute = json.getJSONArray("route");
-                for(int i=0;i<arrayRoute.length();i++){
-                    JSONObject location = (JSONObject)arrayRoute.get(i);
-                    LatLng startPosition = new LatLng(location.getDouble("startLat"),location.getDouble("startLon"));
-                    LatLng endPosition = new LatLng(location.getDouble("endLat"),location.getDouble("endLon"));
-                    int color = location.getInt("color");
-                    routeDetails.add(new RouteDetail(startPosition,endPosition,color));
-                    Log.d("myTag",location.toString());
+                    JSONArray arrayRoute = json.getJSONArray("route");
+                    for (int i = 0; i < arrayRoute.length(); i++) {
+                        JSONObject location = (JSONObject) arrayRoute.get(i);
+                        LatLng startPosition = new LatLng(location.getDouble("startLat"), location.getDouble("startLon"));
+                        LatLng endPosition = new LatLng(location.getDouble("endLat"), location.getDouble("endLon"));
+                        int color = location.getInt("color");
+                        routeDetails.add(new RouteDetail(startPosition, endPosition, color));
+                        Log.d("myTag", location.toString());
+
+                    }
+
+                    Log.d("myTag", routeDetails.toString());
+                    googleMap.addMarker(new MarkerOptions().position(fromPosition).title("Start"));
+                    googleMap.addMarker(new MarkerOptions().position(toPosition).title("End"));
+                    for (int i = 0; i < routeDetails.size(); i++) {
+                        drawPolyline(routeDetails.get(i));
+                    }
+
 
                 }
 
-                Log.d("myTag",routeDetails.toString());
-                googleMap.addMarker(new MarkerOptions().position(fromPosition).title("Start"));
-                googleMap.addMarker(new MarkerOptions().position(toPosition).title("End"));
-                for(int i=0;i<routeDetails.size();i++){
-                    drawPolyline(routeDetails.get(i));
-                }
+                /*double lat = (jsonArray.getJSONObject(0).getJSONObject("detail").getDouble("startLat") + jsonArray.getJSONObject(0).getJSONObject("detail").getDouble("endLat"))/2;
+                double lon = (jsonArray.getJSONObject(jsonArray.length()).getJSONObject("detail").getDouble("startLon") + jsonArray.getJSONObject(jsonArray.length()).getJSONObject("detail").getDouble("endLon"))/2;
+
+                LatLng coordinates = new LatLng(lat,lon);*/
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(sPos, 16));
 
             }catch (Exception e){
 

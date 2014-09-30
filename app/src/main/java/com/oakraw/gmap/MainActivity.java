@@ -38,8 +38,8 @@ public class MainActivity extends Activity {
 
     private String name = "Record";
     private GoogleMap googleMap;
-    LatLng fromPosition = new LatLng(13.687140112679154, 100.53525868803263);
-    LatLng toPosition = new LatLng(13.683660045847258, 100.53900808095932);
+    LatLng fromPosition;
+    LatLng toPosition;
     private int polyLineColor = Color.GREEN;
 
     private int delay = 1000;
@@ -47,7 +47,9 @@ public class MainActivity extends Activity {
 
     private final int count = 20;
     private int c = count;
-    private LatLng tmpPos = fromPosition;
+    private int from = 0;
+    private int to = 1;
+    private LatLng tmpPos;
     private LatLng currentPos;
     private ShakeDetector mShakeDetector;
     private SensorManager mSensorManager;
@@ -56,6 +58,8 @@ public class MainActivity extends Activity {
     private Button startBtn;
     private Button stopBtn;
     private ArrayList<RouteDetail>routeDetails = new ArrayList<RouteDetail>();
+    private ArrayList<LatLng>routeLatLng = new ArrayList<LatLng>();
+    JSONArray jsonArray = new JSONArray();
 
 
     private Runnable running = new Runnable() {
@@ -71,10 +75,21 @@ public class MainActivity extends Activity {
             if(c > 0)
                 handler.postDelayed(running, delay);
             else {
-                mSensorManager.unregisterListener(mShakeDetector);
-                startBtn.setVisibility(View.GONE);
-                stopBtn.setVisibility(View.GONE);
-                finishTracking();
+                if(to == routeLatLng.size()-1) {
+                    mSensorManager.unregisterListener(mShakeDetector);
+                    startBtn.setVisibility(View.GONE);
+                    stopBtn.setVisibility(View.GONE);
+                    finishTracking();
+                    save(jsonArray.toString());
+                }else{
+                    finishTracking();
+                    from++;
+                    to++;
+                    fromPosition = routeLatLng.get(from);
+                    toPosition = routeLatLng.get(to);
+                    c = count;
+                    handler.postDelayed(running, delay);
+                }
             }
         }
 
@@ -112,10 +127,18 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if(!isStart) {
-                    startTracking();
-                    isStart = true;
-                    startBtn.setText("PAUSE");
-                    stopBtn.setVisibility(View.VISIBLE);
+                    if(routeLatLng.size() >= 2) {
+                        fromPosition = routeLatLng.get(from);
+                        toPosition = routeLatLng.get(to);
+                        tmpPos = fromPosition;
+                        startTracking();
+                        isStart = true;
+                        startBtn.setText("PAUSE");
+                        stopBtn.setVisibility(View.VISIBLE);
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(),"Please insert at least 2 markers",Toast.LENGTH_SHORT).show();
+                    }
                 }
                 else{
                     //Pause Tracking
@@ -138,6 +161,15 @@ public class MainActivity extends Activity {
                 startBtn.setVisibility(View.GONE);
                 stopBtn.setVisibility(View.GONE);
                 finishTracking();
+                save(jsonArray.toString());
+            }
+        });
+
+        googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                googleMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                routeLatLng.add(latLng);
             }
         });
     }
@@ -159,8 +191,8 @@ public class MainActivity extends Activity {
             LatLng coordinates = new LatLng(13.685400079263206, 100.537133384495975);
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(coordinates, 16));
 
-            googleMap.addMarker(new MarkerOptions().position(fromPosition).title("Start"));
-            googleMap.addMarker(new MarkerOptions().position(toPosition).title("End"));
+            //googleMap.addMarker(new MarkerOptions().position(fromPosition).title("Start"));
+            //googleMap.addMarker(new MarkerOptions().position(toPosition).title("End"));
 
         }
     }
@@ -174,10 +206,13 @@ public class MainActivity extends Activity {
                 Log.d("shake",count+"");
                 if(count<1.9){
                     polyLineColor = Color.GREEN;
+                    delay = 1000;
                 }else if(count>=1.9 && count < 2.5){
                     polyLineColor = Color.YELLOW;
+                    delay = 500;
                 }else{
                     polyLineColor = Color.RED;
+                    delay = 100;
                 }
             }
         });
@@ -224,8 +259,9 @@ public class MainActivity extends Activity {
             json.put("detail",detailJson);
             json.put("route",arrayRoute);
 
+            jsonArray.put(json);
             //Log.d("myTag",json.toString());
-            save(json.toString());
+            //save(json.toString());
         }
         catch(Exception e){
 
